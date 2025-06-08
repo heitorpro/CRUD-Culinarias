@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($stmt->execute()) {
         echo "<script>alert('Receita atualizada com sucesso!');</script>";
-        echo "<script>window.location.href = 'index.php';</script>"; // Redireciona para a página principal
+        echo "<script>window.location.href = 'receitas.php';</script>"; // Permanece na página de receitas
     } else {
         echo "<script>alert('Erro ao atualizar receita: " . $stmt->error . "');</script>";
         echo "<script>window.location.href = 'editar.php?id=" . $idReceita . "';</script>"; // Redireciona de volta para a página de edição em caso de erro

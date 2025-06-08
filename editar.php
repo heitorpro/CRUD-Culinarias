@@ -98,7 +98,7 @@ if (isset($_GET['id'])) {
 
             <div class="d-flex justify-content-between">
                 <button type="submit" class="btn btn-success">Salvar Alterações</button>
-                <a href="index.php" class="btn btn-secondary">Cancelar</a>
+                <a href="receitas.php" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>
