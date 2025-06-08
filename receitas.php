@@ -119,10 +119,10 @@
                         <div class="card-header">
                             <h3 class="card-title mb-0"><i class="bi bi-book"></i> <?php echo htmlspecialchars($receita['nome_receita']); ?></h3>
                             <div class="action-buttons">
-                                <a href="editar_receita.php?id=<?php echo $receita['idReceita']; ?>" class="btn btn-secondary btn-sm" title="Editar Receita">
+                                <a href="editar.php?id=<?php echo $receita['idReceita']; ?>" class="btn btn-secondary btn-sm" title="Editar Receita">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
-                                <form action="excluir_receita.php" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir esta receita? Esta ação é irreversível.');">
+                                <form action="delete_script.php" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir esta receita? Esta ação é irreversível.');">
                                     <input type="hidden" name="idReceita" value="<?php echo $receita['idReceita']; ?>">
                                     <button type="submit" class="btn btn-danger btn-sm" title="Excluir Receita">
                                         <i class="bi bi-trash"></i> Excluir
