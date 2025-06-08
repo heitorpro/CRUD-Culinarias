@@ -20,6 +20,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer; /* Indica que o header é clicável */
         }
         .recipe-card .card-header h3 {
             margin-bottom: 0;
@@ -36,6 +37,13 @@
         }
         .action-buttons form {
             margin-bottom: 0; /* Remove margem inferior padrão de formulários */
+        }
+        /* Estilo para o ícone de expandir/contrair */
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg); /* Ícone para baixo quando contraído */
         }
     </style>
 </head>
@@ -116,8 +124,12 @@
                 while ($receita = $result_receitas->fetch_assoc()) {
         ?>
                     <div class="card recipe-card">
-                        <div class="card-header">
-                            <h3 class="card-title mb-0"><i class="bi bi-book"></i> <?php echo htmlspecialchars($receita['nome_receita']); ?></h3>
+                        <div class="card-header" id="heading<?php echo $receita['idReceita']; ?>">
+                            <h3 class="card-title mb-0">
+                                <button class="btn btn-link text-white text-decoration-none d-flex align-items-center w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?php echo $receita['idReceita']; ?>" aria-expanded="false" aria-controls="collapse<?php echo $receita['idReceita']; ?>">
+                                    <i class="bi bi-book me-2"></i> <?php echo htmlspecialchars($receita['nome_receita']); ?>
+                                    <i class="bi bi-chevron-down ms-auto collapse-icon"></i> </button>
+                            </h3>
                             <div class="action-buttons">
                                 <a href="editar.php?id=<?php echo $receita['idReceita']; ?>" class="btn btn-secondary btn-sm" title="Editar Receita">
                                     <i class="bi bi-pencil-square"></i> Editar
@@ -130,51 +142,54 @@
                                 </form>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <p><strong>Categoria:</strong> <?php echo htmlspecialchars($receita['categoria']); ?></p>
-                            <?php if (!empty($receita['tempo_preparo_minutos'])): ?>
-                                <p><strong>Tempo de Preparo:</strong> <?php echo htmlspecialchars($receita['tempo_preparo_minutos']); ?> minutos</p>
-                            <?php endif; ?>
-                            <?php if (!empty($receita['rendimento'])): ?>
-                                <p><strong>Rendimento:</strong> <?php echo htmlspecialchars($receita['rendimento']); ?></p>
-                            <?php endif; ?>
-                            
-                            <h5 class="mt-4"><i class="bi bi-basket"></i> Ingredientes:</h5>
-                            <ul class="list-group list-group-flush ingredient-list">
-                                <?php
-                                // Query para buscar os ingredientes desta receita
-                                $sql_ingredientes = "SELECT nome_ingrediente, quantidade, unidade_medida FROM ingredientes WHERE fk_idReceita = ? ORDER BY nome_ingrediente ASC";
-                                $stmt_ingredientes = $conn->prepare($sql_ingredientes);
+                        
+                        <div id="collapse<?php echo $receita['idReceita']; ?>" class="collapse" aria-labelledby="heading<?php echo $receita['idReceita']; ?>" data-bs-parent="#accordionRecipes">
+                            <div class="card-body">
+                                <p><strong>Categoria:</strong> <?php echo htmlspecialchars($receita['categoria']); ?></p>
+                                <?php if (!empty($receita['tempo_preparo_minutos'])): ?>
+                                    <p><strong>Tempo de Preparo:</strong> <?php echo htmlspecialchars($receita['tempo_preparo_minutos']); ?> minutos</p>
+                                <?php endif; ?>
+                                <?php if (!empty($receita['rendimento'])): ?>
+                                    <p><strong>Rendimento:</strong> <?php echo htmlspecialchars($receita['rendimento']); ?></p>
+                                <?php endif; ?>
+                                
+                                <h5 class="mt-4"><i class="bi bi-basket"></i> Ingredientes:</h5>
+                                <ul class="list-group list-group-flush ingredient-list">
+                                    <?php
+                                    // Query para buscar os ingredientes desta receita
+                                    $sql_ingredientes = "SELECT nome_ingrediente, quantidade, unidade_medida FROM ingredientes WHERE fk_idReceita = ? ORDER BY nome_ingrediente ASC";
+                                    $stmt_ingredientes = $conn->prepare($sql_ingredientes);
 
-                                if ($stmt_ingredientes === false) {
-                                    echo '<li class="list-group-item text-danger">Erro ao carregar ingredientes: ' . $conn->error . '</li>';
-                                } else {
-                                    $stmt_ingredientes->bind_param("i", $receita['idReceita']);
-                                    $stmt_ingredientes->execute();
-                                    $result_ingredientes = $stmt_ingredientes->get_result();
-
-                                    if ($result_ingredientes->num_rows > 0) {
-                                        while ($ingrediente = $result_ingredientes->fetch_assoc()) {
-                                            echo '<li class="list-group-item">';
-                                            echo htmlspecialchars($ingrediente['nome_ingrediente']);
-                                            if (!empty($ingrediente['quantidade'])) {
-                                                echo ' - ' . htmlspecialchars($ingrediente['quantidade']);
-                                            }
-                                            if (!empty($ingrediente['unidade_medida'])) {
-                                                echo ' ' . htmlspecialchars($ingrediente['unidade_medida']);
-                                            }
-                                            echo '</li>';
-                                        }
+                                    if ($stmt_ingredientes === false) {
+                                        echo '<li class="list-group-item text-danger">Erro ao carregar ingredientes: ' . $conn->error . '</li>';
                                     } else {
-                                        echo '<li class="list-group-item text-muted">Nenhum ingrediente cadastrado para esta receita.</li>';
-                                    }
-                                    $stmt_ingredientes->close();
-                                }
-                                ?>
-                            </ul>
+                                        $stmt_ingredientes->bind_param("i", $receita['idReceita']);
+                                        $stmt_ingredientes->execute();
+                                        $result_ingredientes = $stmt_ingredientes->get_result();
 
-                            <h5 class="mt-4"><i class="bi bi-card-text"></i> Instruções de Preparo:</h5>
-                            <p class="card-text"><?php echo nl2br(htmlspecialchars($receita['instrucoes_preparo'])); ?></p>
+                                        if ($result_ingredientes->num_rows > 0) {
+                                            while ($ingrediente = $result_ingredientes->fetch_assoc()) {
+                                                echo '<li class="list-group-item">';
+                                                echo htmlspecialchars($ingrediente['nome_ingrediente']);
+                                                if (!empty($ingrediente['quantidade'])) {
+                                                    echo ' - ' . htmlspecialchars($ingrediente['quantidade']);
+                                                }
+                                                if (!empty($ingrediente['unidade_medida'])) {
+                                                    echo ' ' . htmlspecialchars($ingrediente['unidade_medida']);
+                                                }
+                                                echo '</li>';
+                                            }
+                                        } else {
+                                            echo '<li class="list-group-item text-muted">Nenhum ingrediente cadastrado para esta receita.</li>';
+                                        }
+                                        $stmt_ingredientes->close();
+                                    }
+                                    ?>
+                                </ul>
+
+                                <h5 class="mt-4"><i class="bi bi-card-text"></i> Instruções de Preparo:</h5>
+                                <p class="card-text"><?php echo nl2br(htmlspecialchars($receita['instrucoes_preparo'])); ?></p>
+                            </div>
                         </div>
                     </div>
         <?php
@@ -183,14 +198,14 @@
                 // Se não houver receitas cadastradas OU não houver resultados para a pesquisa
                 if (!empty($_GET['search_query'])) {
                     echo '<div class="alert alert-warning text-center" role="alert">
-                            <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Nenhuma Receita Encontrada!</h4>
-                            <p>Não foram encontradas receitas com o termo "' . htmlspecialchars($_GET['search_query']) . '".</p>
-                          </div>';
+                                <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Nenhuma Receita Encontrada!</h4>
+                                <p>Não foram encontradas receitas com o termo "' . htmlspecialchars($_GET['search_query']) . '".</p>
+                            </div>';
                 } else {
                     echo '<div class="alert alert-info text-center" role="alert">
-                            <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Nenhuma Receita Cadastrada!</h4>
-                            <p>Parece que ainda não há receitas cadastradas. Que tal adicionar uma?</p>
-                          </div>';
+                                <h4 class="alert-heading"><i class="bi bi-info-circle"></i> Nenhuma Receita Cadastrada!</h4>
+                                <p>Parece que ainda não há receitas cadastradas. Que tal adicionar uma?</p>
+                            </div>';
                 }
             }
             $stmt_receitas->close(); // Fecha a declaração da receita
@@ -206,5 +221,16 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Script para girar o ícone de chevron ao expandir/contrair
+        document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const icon = this.querySelector('.collapse-icon');
+                if (icon) {
+                    icon.classList.toggle('collapsed');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
